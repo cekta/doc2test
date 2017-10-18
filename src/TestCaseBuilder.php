@@ -16,7 +16,7 @@ class TestCaseBuilder
         $this->outputDir = $outputDir;
     }
 
-    public function addOutputTest(string $code, string $expected): void
+    public function addOutputTest(string $code, string $expected)
     {
         $id = $this->nextId();
         $snippetFile = "{$this->caseName}/code{$id}.inc.php";
@@ -32,7 +32,7 @@ class TestCaseBuilder
 PHP;
     }
 
-    public function addExecutionTest(string $code): void
+    public function addExecutionTest(string $code)
     {
         $id = $this->nextId();
         $snippetFile = "{$this->caseName}/code{$id}.inc.php";
@@ -65,7 +65,7 @@ PHP;
         return $this->id++;
     }
 
-    private function writeFile(string $file, string $content): void
+    private function writeFile(string $file, string $content)
     {
         $file = "{$this->outputDir}/{$file}";
         $dir = pathinfo($file, PATHINFO_DIRNAME);
