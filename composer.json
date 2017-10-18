@@ -14,7 +14,7 @@
     }
   },
   "scripts": {
-    "test": "rm -rf output && php doc2test && phpunit -c output/phpunit.xml --coverage-text"
+    "test": "rm -rf output && ./doc2test && phpunit -c output/phpunit.xml --coverage-text"
   },
   "bin": [
     "doc2test"
