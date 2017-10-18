@@ -1,0 +1,27 @@
+{
+  "name": "f3ath/doc2test",
+  "description": "Documentation-to-Tests convertor",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^7.0",
+    "erusev/parsedown": "1.6.*",
+    "phpunit/phpunit": "^6.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "Doc2Test\\Doc2Test\\": "src"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Doc2Test\\Doc2Test\\Test\\": "test"
+    }
+  },
+  "authors": [
+    {
+      "name": "Alexey Karapetov",
+      "email": "karapetov@gmail.com"
+    }
+  ]
+}
