@@ -30,7 +30,7 @@ class CodeBlock
         $nodeClass = $this->code->attributes->getNamedItem('class');
         if ($nodeClass && preg_match('/^language-(\w+)$/', trim($nodeClass->textContent), $m)) {
             return $m[1];
-        };
+        }
         return '';
     }
 
@@ -52,7 +52,7 @@ class CodeBlock
     }
 
     /**
-     * @param string $key
+     * @param  string      $key
      * @return null|string
      */
     public function getMetaValue(string $key)

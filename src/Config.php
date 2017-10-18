@@ -32,7 +32,7 @@ class Config
     public function getPhpUnitXml(): string
     {
         if (isset($this->conf['phpunit.xml'])) {
-            return file_get_contents($this->path . '/' . $this->conf['phpunit.xml']);
+            return file_get_contents($this->path.'/'.$this->conf['phpunit.xml']);
         }
         return <<<XML
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -49,8 +49,6 @@ class Config
     </filter>
 </phpunit>
 XML;
-XML;
-
+        XML;
     }
-
 }

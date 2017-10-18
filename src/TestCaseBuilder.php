@@ -48,7 +48,7 @@ PHP;
 
     public function dump()
     {
-        $name = ucfirst(strtolower(pathinfo($this->caseName, PATHINFO_FILENAME))) . 'Test';
+        $name = ucfirst(mb_strtolower(pathinfo($this->caseName, PATHINFO_FILENAME))).'Test';
         $body = implode("\n", $this->tests);
         $testCase = <<<PHP
 <?php

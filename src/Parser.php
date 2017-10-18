@@ -25,7 +25,7 @@ class Parser
     }
 
     /**
-     * @param string $file
+     * @param  string      $file
      * @return CodeBlock[]
      */
     public function getCodeBlocks(string $file): array
@@ -51,7 +51,7 @@ class Parser
     }
 
     /**
-     * @param string $file
+     * @param  string    $file
      * @return \DOMXPath
      */
     private function getXPath(string $file): \DOMXPath
