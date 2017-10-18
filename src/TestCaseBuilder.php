@@ -27,7 +27,7 @@ class TestCaseBuilder
     public function testOutput{$id}()
     {
         \$this->expectOutputString(file_get_contents(__DIR__ . '/$expectedOutputFile'));
-        require('$snippetFile');
+        require(__DIR__ . '/$snippetFile');
     }
 PHP;
     }
@@ -40,7 +40,7 @@ PHP;
         $this->tests[] = <<<PHP
     public function testExecution{$id}()
     {
-        require('$snippetFile');
+        require(__DIR__ . '/$snippetFile');
         \$this->assertTrue(true, 'Code executes');
     }
 PHP;
@@ -48,7 +48,7 @@ PHP;
 
     public function dump()
     {
-        $name = ucfirst(pathinfo($this->caseName, PATHINFO_FILENAME)) . 'Test';
+        $name = ucfirst(strtolower(pathinfo($this->caseName, PATHINFO_FILENAME))) . 'Test';
         $body = implode("\n", $this->tests);
         $testCase = <<<PHP
 <?php

@@ -1,45 +1,79 @@
 #!/bin/env php
 <?php
-$autoload = __DIR__ . '/vendor/autoload.php';
+foreach ([
+             __DIR__ . '/../../autoload.php',
+             __DIR__ . '/../vendor/autoload.php',
+             __DIR__ . '/vendor/autoload.php',
+         ] as $file) {
+    if (file_exists($file)) {
+        $autoload = realpath($file);
+        break;
+    }
+}
+if (!isset($autoload)) {
+    fwrite(STDERR, "No autoload found\n");
+    die(1);
+}
 require_once $autoload;
 
 $config = new \Doc2Test\Doc2Test\Config();
 
-$p = \Doc2Test\Doc2Test\Parser::createDefault();
-$mdFile = $config->getSource() . '/example.md';
-$name = pathinfo($mdFile, PATHINFO_BASENAME);
-$builder = new \Doc2Test\Doc2Test\TestCaseBuilder($name, $config->getDestination());
-$elements = $p->getCodeBlocks($mdFile);
+$parser = \Doc2Test\Doc2Test\Parser::createDefault();
 
-/**
- * @var $named \Doc2Test\Doc2Test\CodeBlock[]
- */
-$named = [];
-foreach ($elements as $index => $element) {
-    $name = $element->getMetaValue('name');
-    if ($name) {
-        $named[$name] = $element;
-    }
-}
-
-foreach ($elements as $index => $element) {
-    if ($element->getLanguage() !== 'php') {
-        continue;
-    }
-    $code = $element->getCode() . "\n"; // needed for proper coverage
-    if ($element->getMetaValue('assert') === 'output') {
-        $from = $element->getMetaValue('expect');
-        if ($from) {
-            $builder->addOutputTest($code, $named[$from]->getCode());
+if (is_dir($config->getSource())) {
+    foreach (new RecursiveDirectoryIterator($config->getSource()) as $file) {
+        /** @var $file SplFileInfo */
+        if ($file->getExtension() !== 'md') {
+            continue;
         }
-    } else {
-        $builder->addExecutionTest($code);
+        processFile($file, $config, $parser);
+    }
+} else {
+    $file = new SplFileInfo($config->getSource());
+    if ($file->getExtension() === 'md') {
+        processFile($file, $config, $parser);
     }
 }
-
-$builder->dump();
 
 $xml = new DOMDocument();
 $xml->loadXML($config->getPhpUnitXml());
 $xml->getElementsByTagName('phpunit')->item(0)->setAttribute('bootstrap', $autoload);
 $xml->save($config->getDestination() . '/phpunit.xml');
+
+
+function processFile(SplFileInfo $file, \Doc2Test\Doc2Test\Config $config, \Doc2Test\Doc2Test\Parser $parser)
+{
+    $builder = new \Doc2Test\Doc2Test\TestCaseBuilder(
+        $file->getBasename(),
+        $config->getDestination()
+    );
+    $elements = $parser->getCodeBlocks($file->getPathname());
+
+    /**
+     * @var $named \Doc2Test\Doc2Test\CodeBlock[]
+     */
+    $named = [];
+    foreach ($elements as $index => $element) {
+        $name = $element->getMetaValue('name');
+        if ($name) {
+            $named[$name] = $element;
+        }
+    }
+
+    foreach ($elements as $index => $element) {
+        if ($element->getLanguage() !== 'php') {
+            continue;
+        }
+        $code = $element->getCode() . "\n"; // needed for proper coverage
+        if ($element->getMetaValue('assert') === 'output') {
+            $from = $element->getMetaValue('expect');
+            if ($from) {
+                $builder->addOutputTest($code, $named[$from]->getCode());
+            }
+        } else {
+            $builder->addExecutionTest($code);
+        }
+    }
+
+    $builder->dump();
+}
