@@ -8,6 +8,7 @@ class TestCaseBuilder
     private $caseName;
     private $outputDir;
     private $tests = [];
+    private $id = 0;
 
     public function __construct(string $caseName, string $outputDir)
     {
@@ -17,15 +18,30 @@ class TestCaseBuilder
 
     public function addOutputTest(string $code, string $expected): void
     {
-        $snippetFile = "{$this->caseName}/code.php";
-        $expectedOutputFile = "{$this->caseName}/expected";
+        $id = $this->nextId();
+        $snippetFile = "{$this->caseName}/code{$id}.inc.php";
+        $expectedOutputFile = "{$this->caseName}/expected{$id}";
         $this->writeFile($snippetFile, $code);
         $this->writeFile($expectedOutputFile, $expected);
         $this->tests[] = <<<PHP
-    public function testOutput()
+    public function testOutput{$id}()
     {
         \$this->expectOutputString(file_get_contents(__DIR__ . '/$expectedOutputFile'));
         require('$snippetFile');
+    }
+PHP;
+    }
+
+    public function addExecutionTest(string $code): void
+    {
+        $id = $this->nextId();
+        $snippetFile = "{$this->caseName}/code{$id}.inc.php";
+        $this->writeFile($snippetFile, $code);
+        $this->tests[] = <<<PHP
+    public function testExecution{$id}()
+    {
+        require('$snippetFile');
+        \$this->assertTrue(true, 'Code executes');
     }
 PHP;
     }
@@ -42,6 +58,11 @@ $body
 }
 PHP;
         $this->writeFile("{$name}.php", $testCase);
+    }
+
+    private function nextId(): int
+    {
+        return $this->id++;
     }
 
     private function writeFile(string $file, string $content): void

@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
+
 namespace Doc2Test\Doc2Test;
+
 class Parser
 {
     /**
@@ -15,6 +17,11 @@ class Parser
     public function __construct(\Parsedown $pd)
     {
         $this->pd = $pd;
+    }
+
+    public static function createDefault()
+    {
+        return new self(new \Parsedown());
     }
 
     /**

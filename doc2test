@@ -1,0 +1,45 @@
+#!/bin/env php
+<?php
+$autoload = __DIR__ . '/vendor/autoload.php';
+require_once $autoload;
+
+$config = new \Doc2Test\Doc2Test\Config();
+
+$p = \Doc2Test\Doc2Test\Parser::createDefault();
+$mdFile = $config->getSource() . '/example.md';
+$name = pathinfo($mdFile, PATHINFO_BASENAME);
+$builder = new \Doc2Test\Doc2Test\TestCaseBuilder($name, $config->getDestination());
+$elements = $p->getCodeBlocks($mdFile);
+
+/**
+ * @var $named \Doc2Test\Doc2Test\CodeBlock[]
+ */
+$named = [];
+foreach ($elements as $index => $element) {
+    $name = $element->getMetaValue('name');
+    if ($name) {
+        $named[$name] = $element;
+    }
+}
+
+foreach ($elements as $index => $element) {
+    if ($element->getLanguage() !== 'php') {
+        continue;
+    }
+    $code = $element->getCode() . "\n"; // needed for proper coverage
+    if ($element->getMetaValue('assert') === 'output') {
+        $from = $element->getMetaValue('expect');
+        if ($from) {
+            $builder->addOutputTest($code, $named[$from]->getCode());
+        }
+    } else {
+        $builder->addExecutionTest($code);
+    }
+}
+
+$builder->dump();
+
+$xml = new DOMDocument();
+$xml->loadXML($config->getPhpUnitXml());
+$xml->getElementsByTagName('phpunit')->item(0)->setAttribute('bootstrap', $autoload);
+$xml->save($config->getDestination() . '/phpunit.xml');

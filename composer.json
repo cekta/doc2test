@@ -1,6 +1,6 @@
 {
   "name": "f3ath/doc2test",
-  "description": "Documentation-to-Tests convertor",
+  "description": "Doc2Test is a documentation testing framework for PHP",
   "type": "library",
   "license": "MIT",
   "require": {
@@ -17,6 +17,9 @@
     "psr-4": {
       "Doc2Test\\Doc2Test\\Test\\": "test"
     }
+  },
+  "scripts": {
+    "test": "rm -rf output && ./doc2test && phpunit -c output/phpunit.xml --coverage-text"
   },
   "authors": [
     {
