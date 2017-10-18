@@ -1,5 +1,5 @@
 {
-  "name": "f3ath/doc2test",
+  "name": "doc2test/doc2test",
   "description": "Doc2Test is a documentation testing framework for PHP. It tests code snippets in your docs",
   "type": "library",
   "license": "MIT",
