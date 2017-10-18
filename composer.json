@@ -1,6 +1,6 @@
 {
   "name": "f3ath/doc2test",
-  "description": "Doc2Test is a documentation testing framework for PHP",
+  "description": "Doc2Test is a documentation testing framework for PHP. It tests code snippets in your docs",
   "type": "library",
   "license": "MIT",
   "require": {
@@ -11,11 +11,6 @@
   "autoload": {
     "psr-4": {
       "Doc2Test\\Doc2Test\\": "src"
-    }
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "Doc2Test\\Doc2Test\\Test\\": "test"
     }
   },
   "scripts": {
