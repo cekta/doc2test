@@ -3,7 +3,6 @@
   "description": "Doc2Test is a documentation testing framework for PHP. It tests code snippets in your docs",
   "type": "library",
   "license": "MIT",
-  "version": "0.0.10-alpha",
   "require": {
     "php": "^7.0",
     "erusev/parsedown": "1.6.*",
@@ -15,7 +14,7 @@
     }
   },
   "scripts": {
-    "test": "rm -rf output && ./doc2test && phpunit -c output/phpunit.xml --coverage-text"
+    "test": "rm -rf output && php doc2test && phpunit -c output/phpunit.xml --coverage-text"
   },
   "bin": [
     "doc2test"
