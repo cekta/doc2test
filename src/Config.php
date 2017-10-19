@@ -49,6 +49,5 @@ class Config
     </filter>
 </phpunit>
 XML;
-        XML;
     }
 }
