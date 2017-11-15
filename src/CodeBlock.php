@@ -5,58 +5,34 @@ namespace Doc2Test\Doc2Test;
 
 class CodeBlock
 {
-    /**
-     * @var \DOMNode
-     */
-    private $code;
-
-    /**
-     * @var \DOMNode
-     */
+    private $content;
+    private $language;
     private $meta;
 
-    /**
-     * @param \DOMNode $code
-     * @param \DOMNode $meta
-     */
-    public function __construct(\DOMNode $code, \DOMNode $meta = null)
+    public function __construct(string $content, string $lang = '', $meta = [])
     {
-        $this->code = $code;
+        $this->content = $content;
+        $this->language = $lang;
         $this->meta = $meta;
     }
 
-    public function getLanguage(): string
+    public function toStringContent(): string
     {
-        $nodeClass = $this->code->attributes->getNamedItem('class');
-        if ($nodeClass && preg_match('/^language-(\w+)$/', trim($nodeClass->textContent), $m)) {
-            return $m[1];
-        }
-        return '';
+        return $this->content;
     }
 
-    public function getCode(): string
+    public function toLanguage(): string
     {
-        return $this->code->textContent;
+        return $this->language;
     }
 
-    public function getMeta(): array
+    public function toMeta(): array
     {
-        $parsed = [];
-        $meta = $this->meta ? trim($this->meta->textContent) : '';
-        $pairs = preg_split('/\s/', $meta, -1, PREG_SPLIT_NO_EMPTY);
-        foreach ($pairs as $pair) {
-            @list($left, $right) = explode('=', $pair);
-            $parsed[$left] = $right;
-        }
-        return $parsed;
+        return $this->meta;
     }
 
-    /**
-     * @param  string      $key
-     * @return null|string
-     */
-    public function getMetaValue(string $key)
+    public function isPhp(): bool
     {
-        return @$this->getMeta()[$key];
+        return 'php' === $this->toLanguage();
     }
 }

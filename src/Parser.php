@@ -3,65 +3,86 @@ declare(strict_types=1);
 
 namespace Doc2Test\Doc2Test;
 
-class Parser
+use League\CommonMark\Block\Element\AbstractBlock;
+use League\CommonMark\Block\Element\FencedCode;
+use League\CommonMark\Block\Element\HtmlBlock;
+use League\CommonMark\DocParser;
+use League\CommonMark\Inline\Element\AbstractStringContainer;
+use League\CommonMark\Inline\Element\Code;
+use League\CommonMark\Inline\Element\HtmlInline;
+use League\CommonMark\Node\Node;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
+
+class Parser implements LoggerAwareInterface
 {
-    /**
-     * @var \Parsedown
-     */
-    private $pd;
+    use LoggerAwareTrait;
 
-    /**
-     * Parser constructor.
-     * @param \Parsedown $pd
-     */
-    public function __construct(\Parsedown $pd)
+    private $parser;
+
+    public function __construct(DocParser $parser)
     {
-        $this->pd = $pd;
+        $this->parser = $parser;
     }
 
-    public static function createDefault()
+    public function parse(string $string): Document
     {
-        return new self(new \Parsedown());
-    }
-
-    /**
-     * @param  string      $file
-     * @return CodeBlock[]
-     */
-    public function getCodeBlocks(string $file): array
-    {
-        $elements = [];
-        $xpath = $this->getXPath($file);
-        $codeNodes = $xpath->query("//code");
-        foreach ($codeNodes as $codeNode) {
-            $comment = null;
-            /**
-             * @var $pre \DOMNode
-             */
-            $pre = $codeNode->parentNode;
-            if ($pre->previousSibling->nodeType === XML_COMMENT_NODE) {
-                $comment = $pre->previousSibling;
-            } elseif ($pre->previousSibling->nodeType === XML_TEXT_NODE
-                && $pre->previousSibling->previousSibling->nodeType === XML_COMMENT_NODE) {
-                $comment = $pre->previousSibling->previousSibling;
+        $doc = new DocumentBuilder();
+        $walker = $this->parser->parse($string)->walker();
+        while ($event = $walker->next()) {
+            if (! $event->isEntering()) {
+                continue;
             }
-            $elements[] = new CodeBlock($codeNode, $comment);
+            $node = $event->getNode();
+            if ($this->isCode($node)) {
+                $doc->addBlock($this->makeCodeBlock($node));
+            }
         }
-        return $elements;
+        return $doc;
     }
 
-    /**
-     * @param  string    $file
-     * @return \DOMXPath
-     */
-    private function getXPath(string $file): \DOMXPath
+    private function isCode(Node $node): bool
     {
-        $dom = new \DOMDocument();
-        $dom->loadHTML(
-            $this->pd->text(
-                file_get_contents($file)
-            )
+        return $node instanceof Code || $node instanceof FencedCode;
+    }
+
+    private function isHtml(Node $node): bool
+    {
+        return $node instanceof HtmlInline || $node instanceof HtmlBlock;
+    }
+
+    private function getContent(Node $node): string
+    {
+        if ($node instanceof AbstractStringContainer) {
+            return $node->getContent();
+        } elseif ($node instanceof AbstractBlock) {
+            return $node->getStringContent();
+        }
+        throw new \UnexpectedValueException();
+    }
+
+    private function makeCodeBlock(Node $node): CodeBlock
+    {
+        return new CodeBlock(
+            $this->getContent($node),
+            $node instanceof FencedCode ? $node->getInfo() : '',
+            $this->getMeta($node)
         );
-        return new \DOMXPath($dom);
+    }
+
+    private function getMeta(Node $node): array
+    {
+        do {
+            $node = $node->previous();
+        } while (! trim($this->getContent($node)));
+        if ($this->isHtml($node) && preg_match('/^<!--(.*)-->$/s', trim($this->getContent($node)), $match)) {
+            $content = $match[1];
+            $meta = json_decode($content, true);
+            if (!$meta) {
+                $this->logger && $this->logger->info("Can not parse {$content}");
+            }
+            return $meta ?: [];
+        }
+        return [];
     }
 }

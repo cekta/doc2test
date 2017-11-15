@@ -3,75 +3,70 @@ declare(strict_types=1);
 
 namespace Doc2Test\Doc2Test;
 
+use League\Plates\Engine;
+
 class TestCaseBuilder
 {
-    private $caseName;
-    private $outputDir;
+    private $template;
+    private $files = [];
     private $tests = [];
-    private $id = 0;
+    private $name;
+    private $namespace;
 
-    public function __construct(string $caseName, string $outputDir)
+    public function __construct(Engine $template)
     {
-        $this->caseName = $caseName;
-        $this->outputDir = $outputDir;
-    }
-
-    public function addOutputTest(string $code, string $expected)
-    {
-        $id = $this->nextId();
-        $snippetFile = "{$this->caseName}/code{$id}.inc.php";
-        $expectedOutputFile = "{$this->caseName}/expected{$id}";
-        $this->writeFile($snippetFile, $code);
-        $this->writeFile($expectedOutputFile, $expected);
-        $this->tests[] = <<<PHP
-    public function testOutput{$id}()
-    {
-        \$this->expectOutputString(file_get_contents(__DIR__ . '/$expectedOutputFile'));
-        require(__DIR__ . '/$snippetFile');
-    }
-PHP;
+        $this->template = $template;
     }
 
-    public function addExecutionTest(string $code)
+    public function isEmpty(): bool
     {
-        $id = $this->nextId();
-        $snippetFile = "{$this->caseName}/code{$id}.inc.php";
-        $this->writeFile($snippetFile, $code);
-        $this->tests[] = <<<PHP
-    public function testExecution{$id}()
-    {
-        require(__DIR__ . '/$snippetFile');
-        \$this->assertTrue(true, 'Code executes');
-    }
-PHP;
+        return empty($this->tests);
     }
 
-    public function dump()
+    public function start(string $name, string $namespace): void
     {
-        $name = ucfirst(mb_strtolower(pathinfo($this->caseName, PATHINFO_FILENAME))).'Test';
-        $body = implode("\n", $this->tests);
-        $testCase = <<<PHP
-<?php
-class $name extends PHPUnit\Framework\TestCase
-{
-$body
-}
-PHP;
-        $this->writeFile("{$name}.php", $testCase);
+        $this->name = $name . 'Test';
+        $this->namespace = $namespace;
+        $this->files = [];
+        $this->tests = [];
     }
 
-    private function nextId(): int
+    public function addOutputTest(string $expected, string $code): void
     {
-        return $this->id++;
+        $codeFile = "code.php";
+        $this->files[$codeFile] = $code;
+        $this->tests[] = $this->template->render(
+            'output_test',
+            [
+                'name' => 'testOutput',
+                'expected' => $expected,
+                'code_file' => $codeFile,
+                'test_name' => $this->name,
+            ]
+        );
     }
 
-    private function writeFile(string $file, string $content)
+    public function write(string $dir): void
     {
-        $file = "{$this->outputDir}/{$file}";
-        $dir = pathinfo($file, PATHINFO_DIRNAME);
-        if (!is_dir($dir)) {
-            mkdir($dir, 0777, true);
+        $path = str_replace('\\', '/', $this->namespace);
+        foreach ($this->files as $file => $content) {
+            $this->writeFile("{$dir}/{$path}/{$this->name}/{$file}", $content);
         }
+        $class = $this->template->render(
+            'class',
+            [
+                'name' => $this->name,
+                'namespace' => $this->namespace,
+                'content' => implode($this->tests)
+            ]
+        );
+        $this->writeFile("{$dir}/{$path}/{$this->name}.php", $class);
+    }
+
+    private function writeFile(string $file, string $content): void
+    {
+        $dir = pathinfo($file, PATHINFO_DIRNAME);
+        file_exists($dir) || mkdir($dir, 0777, true);
         file_put_contents($file, $content);
     }
 }
