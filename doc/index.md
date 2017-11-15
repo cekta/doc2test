@@ -1,8 +1,14 @@
 Doc2Test is a tool that turns documentation in markdown into executable test suites.
 
-Many libraries have documentation with usage examples. It is the quickest way to get started with the library.
-But the code evolves and it may happen that the documentation gets outdated. Subtle changes in the API, typos, oversights
-can make the documentation erroneous and misleading. Doc2Test helps you test the documentation.
+**Problem.** 
+Many libraries have documentation with usage examples. 
+It is the quickest way to get started with the library.
+But the code evolves and it may happen that the documentation gets outdated. 
+Subtle changes in the API, typos, oversightscan make the documentation erroneous and misleading. 
+
+**Solution.** 
+You add annotations before code blocks in your documentation to set expectations.
+Doc2Test produces a test suite according to the expectations. 
 
 ## Usage
 ```text
@@ -13,8 +19,6 @@ PHPUnit v.6 test suite in `<output directory>`. When the test suite is created, 
 ```text
 $ phpunit -c <output directory>/phpunit.xml
 ```
-
-Please read the source code of this file for more examples.
 
 ## Quick example
 
@@ -31,3 +35,18 @@ $a = 23;
 $b = 19;
 echo $a +  $b;
 ```
+
+Add the following block in the `.md` file to describe the expected behavior:
+```html
+<!--{
+    "assert":"output", 
+    "expect":{
+        "value": "42"
+    }
+}-->
+```
+
+## Documentation
+
+Look into **the source code** of the documentation files to see usage examples
+- [Output Assertions](assertions/output.md) 

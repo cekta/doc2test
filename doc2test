@@ -11,13 +11,15 @@ $templates = new \League\Plates\Engine(__DIR__ . '/template');
 $templates->registerFunction('v', function ($s) {
     return var_export($s, true);
 });
-// $parser->setLogger(new Monolog\Logger('app', [new \Monolog\Handler\ErrorLogHandler()]));
+$parser->setLogger(new Monolog\Logger('app', [new \Monolog\Handler\ErrorLogHandler()]));
 $makeTestSuite = new Doc2Test\Doc2Test\Command\MakeTestSuite(
     $parser,
     new \Doc2Test\Doc2Test\TestCaseBuilder(
         $templates
     )
 );
+$makeTestSuite->addProcessor(new \Doc2Test\Doc2Test\Processor\OutputValueProcessor());
+$makeTestSuite->addProcessor(new \Doc2Test\Doc2Test\Processor\OutputBlockProcessor());
 $app = new Symfony\Component\Console\Application();
 $app->add($makeTestSuite);
 $app->setDefaultCommand($makeTestSuite->getName(), true);

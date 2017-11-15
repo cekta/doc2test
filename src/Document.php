@@ -11,4 +11,6 @@ interface Document
     public function toBlocks(): array;
 
     public function toMeta(): array;
+
+    public function toBlock(string $name): CodeBlock;
 }

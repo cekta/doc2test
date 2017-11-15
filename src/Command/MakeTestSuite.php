@@ -6,6 +6,8 @@ namespace Doc2Test\Doc2Test\Command;
 use Doc2Test\Doc2Test\CodeBlock;
 use Doc2Test\Doc2Test\MdFilesIterator;
 use Doc2Test\Doc2Test\Parser;
+use Doc2Test\Doc2Test\CodeBlockProcessor;
+use Doc2Test\Doc2Test\Processor\OutputValueProcessor;
 use Doc2Test\Doc2Test\TestCaseBuilder;
 use MatthiasMullie\PathConverter\Converter;
 use Symfony\Component\Console\Command\Command;
@@ -26,10 +28,10 @@ class MakeTestSuite extends Command
     private $builder;
 
     /**
-     * MakeTestSuite constructor.
-     * @param Parser $parser
-     * @param TestCaseBuilder $builder
+     * @var CodeBlockProcessor[]
      */
+    private $processors = [];
+
     public function __construct(Parser $parser, TestCaseBuilder $builder)
     {
         parent::__construct();
@@ -37,6 +39,10 @@ class MakeTestSuite extends Command
         $this->builder = $builder;
     }
 
+    public function addProcessor(CodeBlockProcessor $processor): void
+    {
+        $this->processors[] = $processor;
+    }
 
     protected function configure()
     {
@@ -49,7 +55,7 @@ class MakeTestSuite extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $mdFiles = new MdFilesIterator(
+        $files = new MdFilesIterator(
             new \RecursiveIteratorIterator(
                 new \RecursiveDirectoryIterator(
                     $input->getArgument('input'),
@@ -58,10 +64,10 @@ class MakeTestSuite extends Command
             )
         );
         /** @var \SplFileInfo $file */
-        foreach ($mdFiles as $file) {
-            $path = (new Converter('.', $input->getArgument('input')))->convert($file->getPath());
-            $namespace = $this->pathToNamespace($path);
-
+        foreach ($files as $file) {
+            $namespace = $this->pathToNamespace(
+                (new Converter('.', $input->getArgument('input')))->convert($file->getPath())
+            );
             $this->builder->start(mb_convert_case($file->getBasename('.md'), MB_CASE_TITLE), $namespace);
             $doc = $this->parser->parse(file_get_contents($file->getRealPath()));
             /** @var CodeBlock[] $blocks */
@@ -71,14 +77,12 @@ class MakeTestSuite extends Command
                     return $b->isPhp();
                 }
             );
-
-            foreach ($blocks as $block) {
-                $meta = $block->toMeta();
-                $assert = $meta['assert'] ?? 'execute';
-                switch ($assert) {
-                    case 'output':
-                        $expect = $meta['expect'];
-                        $this->builder->addOutputTest($expect['value'], $block->toStringContent());
+            foreach ($blocks as $code) {
+                foreach ($this->processors as $processor) {
+                    if ($processor->supports($code)) {
+                        $processor->process($code, $doc, $this->builder);
+                        continue 2;
+                    }
                 }
             }
             if (!$this->builder->isEmpty()) {

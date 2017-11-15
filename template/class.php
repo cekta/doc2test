@@ -5,6 +5,9 @@ declare(strict_types=1);
 <?php endif ?>
 use PHPUnit\Framework\TestCase;
 class <?=$name?> extends TestCase {
-<?=$content?>
+<?php foreach ($tests as $test): ?>
+<?=$test?>
+
+<?php endforeach; ?>
 
 }

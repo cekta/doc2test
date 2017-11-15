@@ -33,12 +33,13 @@ class TestCaseBuilder
 
     public function addOutputTest(string $expected, string $code): void
     {
-        $codeFile = "code.php";
+        $id = count($this->tests);
+        $codeFile = "code{$id}.php";
         $this->files[$codeFile] = $code;
         $this->tests[] = $this->template->render(
             'output_test',
             [
-                'name' => 'testOutput',
+                'name' => "test{$id}Output",
                 'expected' => $expected,
                 'code_file' => $codeFile,
                 'test_name' => $this->name,
@@ -57,7 +58,7 @@ class TestCaseBuilder
             [
                 'name' => $this->name,
                 'namespace' => $this->namespace,
-                'content' => implode($this->tests)
+                'tests' => $this->tests
             ]
         );
         $this->writeFile("{$dir}/{$path}/{$this->name}.php", $class);
