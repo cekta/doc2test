@@ -1,6 +1,21 @@
 #!/usr/bin/env php
 <?php
-require_once __DIR__ . '/vendor/autoload.php';
+$autoloadOptions = [
+    __DIR__ . '/../../autoload.php',
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/vendor/autoload.php',
+];
+foreach ($autoloadOptions as $autoload) {
+    if (file_exists($autoload)) {
+        require_once $autoload;
+        break;
+    }
+}
+
+if (!isset($autoload)) {
+    fwrite(STDERR, 'Unable to locate Composer autoload.php' . PHP_EOL);
+    die(1);
+}
 
 $parser = new \Doc2Test\Doc2Test\Parser(
     new \League\CommonMark\DocParser(
@@ -12,11 +27,14 @@ $templates->registerFunction('v', function ($s) {
     return var_export($s, true);
 });
 $parser->setLogger(new Monolog\Logger('app', [new \Monolog\Handler\ErrorLogHandler()]));
+$phpunitConfig = new \Doc2Test\Doc2Test\PHPUnitConfig(file_get_contents(__DIR__ . '/default/phpunit.xml'));
+$phpunitConfig->setBootstrap($autoload);
 $makeTestSuite = new Doc2Test\Doc2Test\Command\MakeTestSuite(
     $parser,
     new \Doc2Test\Doc2Test\TestCaseBuilder(
         $templates
-    )
+    ),
+    $phpunitConfig->toString()
 );
 $makeTestSuite->addProcessor(new \Doc2Test\Doc2Test\Processor\OutputValueProcessor());
 $makeTestSuite->addProcessor(new \Doc2Test\Doc2Test\Processor\OutputBlockProcessor());

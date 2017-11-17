@@ -47,7 +47,7 @@ class TestCaseBuilder
         );
     }
 
-    public function write(string $dir): void
+    public function writeTo(string $dir): void
     {
         $path = str_replace('\\', '/', $this->namespace);
         foreach ($this->files as $file => $content) {

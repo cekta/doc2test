@@ -7,6 +7,7 @@ use Doc2Test\Doc2Test\CodeBlock;
 use Doc2Test\Doc2Test\MdFilesIterator;
 use Doc2Test\Doc2Test\Parser;
 use Doc2Test\Doc2Test\CodeBlockProcessor;
+use Doc2Test\Doc2Test\PHPUnitConfig;
 use Doc2Test\Doc2Test\Processor\OutputValueProcessor;
 use Doc2Test\Doc2Test\TestCaseBuilder;
 use MatthiasMullie\PathConverter\Converter;
@@ -32,11 +33,14 @@ class MakeTestSuite extends Command
      */
     private $processors = [];
 
-    public function __construct(Parser $parser, TestCaseBuilder $builder)
+    private $phpunitConfig;
+
+    public function __construct(Parser $parser, TestCaseBuilder $builder, string $phpunitConfig)
     {
         parent::__construct();
         $this->parser = $parser;
         $this->builder = $builder;
+        $this->phpunitConfig = $phpunitConfig;
     }
 
     public function addProcessor(CodeBlockProcessor $processor): void
@@ -86,9 +90,10 @@ class MakeTestSuite extends Command
                 }
             }
             if (!$this->builder->isEmpty()) {
-                $this->builder->write($input->getArgument('output'));
+                $this->builder->writeTo($input->getArgument('output'));
             }
         }
+        file_put_contents($input->getArgument('output') . '/phpunit.xml', $this->phpunitConfig);
     }
 
     private function pathToNamespace(string $path): string

@@ -13,6 +13,7 @@ class FunctionalTest extends TestCase
         parent::setUp();
         $this->output = sys_get_temp_dir() . '/php' . sha1((string) microtime(true));
         mkdir($this->output);
+        system(sprintf('./doc2test doc %s', $this->output));
     }
 
     protected function tearDown()
@@ -22,10 +23,15 @@ class FunctionalTest extends TestCase
     }
 
 
-    public function testProducedTestSuite()
+    public function testProducedTestCodeMatchesExpected()
     {
-        system(sprintf('./doc2test doc %s', $this->output));
         $this->assertDirectoryHasSameFiles(__DIR__ . '/expected', $this->output);
+    }
+
+    public function testConfigurationXmlIsValid()
+    {
+        exec(sprintf('phpunit -c %s', "{$this->output}/phpunit.xml"), $output, $returnVar);
+        $this->assertEquals(0, $returnVar);
     }
 
     public static function assertDirectoryHasSameFiles(string $expectedDir, string $actualDir)
