@@ -31,3 +31,6 @@ Here is an unmarked plain text:
 ```
 This block has no language assigned
 ```
+
+* This is a `list item` with a 
+ `line break` in it

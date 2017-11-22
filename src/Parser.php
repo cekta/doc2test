@@ -10,6 +10,7 @@ use League\CommonMark\DocParser;
 use League\CommonMark\Inline\Element\AbstractStringContainer;
 use League\CommonMark\Inline\Element\Code;
 use League\CommonMark\Inline\Element\HtmlInline;
+use League\CommonMark\Inline\Element\Newline;
 use League\CommonMark\Node\Node;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
@@ -30,7 +31,7 @@ class Parser implements LoggerAwareInterface
         $doc = new DocumentBuilder();
         $walker = $this->parser->parse($string)->walker();
         while ($event = $walker->next()) {
-            if (! $event->isEntering()) {
+            if (!$event->isEntering()) {
                 continue;
             }
             $node = $event->getNode();
@@ -72,10 +73,11 @@ class Parser implements LoggerAwareInterface
 
     private function getMeta(Node $node): array
     {
-        do {
+        $node = $node->previous();
+        if ($this->isBlank($node)) {
             $node = $node->previous();
-        } while (! trim($this->getContent($node)));
-        if ($this->isHtml($node) && preg_match('/^<!--(.*)-->$/s', trim($this->getContent($node)), $match)) {
+        }
+        if ($node && $this->isHtml($node) && preg_match('/^<!--(.*)-->$/s', trim($this->getContent($node)), $match)) {
             $content = $match[1];
             $meta = json_decode($content, true);
             if (!$meta) {
@@ -84,5 +86,11 @@ class Parser implements LoggerAwareInterface
             return $meta ?: [];
         }
         return [];
+    }
+
+    private function isBlank(Node $node): bool
+    {
+        return $node instanceof Newline
+            || !trim($this->getContent($node));
     }
 }
