@@ -74,7 +74,7 @@ class Parser implements LoggerAwareInterface
     private function getMeta(Node $node): array
     {
         $node = $node->previous();
-        if ($this->isBlank($node)) {
+        if ($node && $this->isBlank($node)) {
             $node = $node->previous();
         }
         if ($node && $this->isHtml($node) && preg_match('/^<!--(.*)-->$/s', trim($this->getContent($node)), $match)) {

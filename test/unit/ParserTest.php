@@ -19,7 +19,7 @@ class ParserTest extends TestCase
     {
         $document = $this
             ->createParser()
-            ->parse(file_get_contents(__DIR__ . '/samples/example.md'));
+            ->parse(file_get_contents(__DIR__ . '/Fixtures/example.md'));
         [
             $inlineOne,
             $inlineTwo,
@@ -52,6 +52,16 @@ class ParserTest extends TestCase
         $this->assertEquals("This block has no language assigned\n", $textUnmarked->toStringContent());
         $this->assertEquals('', $textUnmarked->toLanguage());
         $this->assertEquals(['name' => 'plain text block'], $textUnmarked->toMeta());
+    }
+
+    public function testBlockAtFirstLineIsParsed()
+    {
+         [$block] = $this
+            ->createParser()
+            ->parse(file_get_contents(__DIR__ . '/Fixtures/block_at_first_line.md'))
+             ->toBlocks();
+        $this->assertEquals('yo', $block->toStringContent());
+        $this->assertEquals([], $block->toMeta());
     }
 
     /**
