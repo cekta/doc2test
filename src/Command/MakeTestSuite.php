@@ -7,8 +7,7 @@ use Doc2Test\Doc2Test\CodeBlock;
 use Doc2Test\Doc2Test\MdFilesIterator;
 use Doc2Test\Doc2Test\Parser;
 use Doc2Test\Doc2Test\CodeBlockProcessor;
-use Doc2Test\Doc2Test\PHPUnitConfig;
-use Doc2Test\Doc2Test\Processor\OutputValueProcessor;
+use Doc2Test\Doc2Test\PhpNamespace;
 use Doc2Test\Doc2Test\TestCaseBuilder;
 use MatthiasMullie\PathConverter\Converter;
 use Symfony\Component\Console\Command\Command;
@@ -69,7 +68,7 @@ class MakeTestSuite extends Command
         );
         /** @var \SplFileInfo $file */
         foreach ($files as $file) {
-            $namespace = $this->pathToNamespace(
+            $namespace = (string) new PhpNamespace(
                 (new Converter('.', $input->getArgument('input')))->convert($file->getPath())
             );
             $this->builder->start(mb_convert_case($file->getBasename('.md'), MB_CASE_TITLE), $namespace);
@@ -94,18 +93,5 @@ class MakeTestSuite extends Command
             }
         }
         file_put_contents($input->getArgument('output') . '/phpunit.xml', $this->phpunitConfig);
-    }
-
-    private function pathToNamespace(string $path): string
-    {
-        return implode(
-            '\\',
-            array_map(
-                function (string $s) {
-                    return mb_convert_case($s, MB_CASE_TITLE);
-                },
-                explode('\\', $path)
-            )
-        );
     }
 }

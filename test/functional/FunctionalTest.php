@@ -30,7 +30,7 @@ class FunctionalTest extends TestCase
 
     public function testConfigurationXmlIsValid()
     {
-        exec(sprintf('phpunit -c %s', "{$this->output}/phpunit.xml"), $output, $returnVar);
+        exec(sprintf('./vendor/bin/phpunit -c %s', "{$this->output}/phpunit.xml"), $output, $returnVar);
         $this->assertEquals(0, $returnVar);
     }
 
